@@ -15,6 +15,8 @@ npm install
 
 - PATHを通す
 
+zshなら~/.zshrcに以下を追記。
+
 ```sh
 export PATH=$PATH:<インストールフォルダ>/bin
 ```
