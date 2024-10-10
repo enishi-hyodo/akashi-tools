@@ -1,6 +1,9 @@
 // require
 const { program } = require("commander");
-const { getStaffInfo, getKosu } = require("./commands");
+const dayjs = require("dayjs");
+const duration = require("dayjs/plugin/duration");
+dayjs.extend(duration);
+const { getStaffInfo, getKosu, insertKosu } = require("./commands");
 
 /**
  * メイン処理
@@ -23,6 +26,15 @@ function main() {
     .description("get kosu of the month.")
     .action(() => {
       getKosu();
+    });
+
+  // 工数入力
+  program
+    .command("insert-kosu [targetMonth]")
+    .description("insert kosu")
+    .action((targetMonth) => {
+      const date = targetMonth ? dayjs(targetMonth) : dayjs();
+      insertKosu(date);
     });
 
   program.parse(process.argv);
