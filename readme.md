@@ -19,9 +19,9 @@ npm install
 export PATH=$PATH:<インストールフォルダ>/bin
 ```
 
-## .envを埋める  
+## .envを作成
 
-.env.exampleを参照。
+.env.exampleコピーして.envを作成し、必要な情報を埋める。
 
 ```sh
 # 企業ID: ログイン時に入力しているやつ
@@ -39,6 +39,16 @@ STAFF_ID=
 # > akashi-tools get-kosu # 何故か月指定できず、今月分しか見れないので、今月分を一箇所入力してみてからAPI叩くと良い。
 PROJECT_ID=
 TASK_ID=
+```
+
+## 試し実行
+
+いきなりDBにデータを登録するような操作はこわいので、試し実行には以下がちょうどいい。
+
+```sh
+# 自分の従業員情報を表示する
+# .envのCOMPANY_ID, API_TOKENだけ設定していれば動く
+akashi-tools get-staff
 ```
 
 # 使い方
