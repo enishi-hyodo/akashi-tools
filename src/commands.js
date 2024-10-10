@@ -25,7 +25,7 @@ function getStaffInfo() {
       },
     })
     .then((response) => {
-      console.log(response.data.response);
+      console.dir(response.data.response, { depth: null });
     })
     .catch((error) => {
       console.error("Error:", error);
