@@ -4,12 +4,12 @@ const axios = require("axios");
 
 // .env読み込み
 dotenv.config();
-const companyId = process.env.COMPANY_ID;
-const token = process.env.API_TOKEN;
+const COMPANY_ID = process.env.COMPANY_ID;
+const TOKEN = process.env.API_TOKEN;
 
 // その他定数
-const _endpoint = "https://atnd.ak4.jp/api/cooperation/";
-const _api = {
+const ENDPOINT = "https://atnd.ak4.jp/api/cooperation/";
+const API = {
   staffs: "staffs",
 };
 
@@ -18,10 +18,10 @@ const _api = {
  */
 function getStaffInfo() {
   axios
-    .get(_getApiUrl(_api.staffs), {
+    .get(_getApiUrl(API.staffs), {
       params: {
-        token: token,
-        target: token,
+        token: TOKEN,
+        target: TOKEN,
       },
     })
     .then((response) => {
@@ -36,7 +36,7 @@ function getStaffInfo() {
  * APIのURLを取得する
  */
 function _getApiUrl(api) {
-  return _endpoint + companyId + "/" + api;
+  return ENDPOINT + COMPANY_ID + "/" + api;
 }
 
 module.exports = {
