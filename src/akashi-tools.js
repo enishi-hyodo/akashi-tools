@@ -23,8 +23,8 @@ function main() {
 
   // 従業員情報取得
   program
-    .command("staff")
-    .description("get staff info")
+    .command("get-staff")
+    .description("get staff information by token.")
     .action(() => {
       getStaffInfo();
     });
@@ -37,7 +37,7 @@ function main() {
  */
 function getStaffInfo() {
   axios
-    .get(getUrl(_api.staffs), {
+    .get(getApiUrl(_api.staffs), {
       params: {
         token: token,
         target: token,
@@ -54,7 +54,7 @@ function getStaffInfo() {
 /**
  * APIのURLを取得する
  */
-function getUrl(api) {
+function getApiUrl(api) {
   return _endpoint + companyId + "/" + api;
 }
 
