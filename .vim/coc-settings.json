@@ -1,5 +1,9 @@
 {
-  "cSpell.ignoreWords": [
-    "kosu"
-  ]
+  "coc.preferences.formatOnSaveFiletypes": ["javascript", "json", "jsonc"],
+  "cSpell.ignoreWords": ["kosu"],
+  "semanticTokens.enable": true,
+  "eslint.enable": false,
+  "tsserver.enable": false,
+  "javascript.format.enable": true,
+  "prettier.enable": true
 }
