@@ -67,6 +67,8 @@ async function insertKosu(targetMonth) {
   const startDate = targetMonth.startOf('month').format('YYYYMMDD');
   const endDate = targetMonth.endOf('month').format('YYYYMMDD');
 
+  console.log(targetMonth.format('YYYY/MM') + 'の工数を入力します。');
+
   try {
     // 1. 勤務実績取得
     const response = await axios.get(_getApiUrl(API.working_records), {
@@ -138,6 +140,8 @@ async function insertKosu(targetMonth) {
         },
       ],
     });
+
+    console.log(targetMonth.format('YYYY/MM') + 'の工数入力が完了しました。');
   } catch (error) {
     console.error('Error:', error);
   }
