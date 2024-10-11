@@ -1,8 +1,8 @@
 // require
-const dotenv = require("dotenv");
-const axios = require("axios");
-const dayjs = require("dayjs");
-const duration = require("dayjs/plugin/duration");
+const dotenv = require('dotenv');
+const axios = require('axios');
+const dayjs = require('dayjs');
+const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
 // .env読み込み
@@ -14,11 +14,11 @@ const PROJECT_ID = Number(process.env.PROJECT_ID);
 const TASK_ID = Number(process.env.TASK_ID);
 
 // その他定数
-const ENDPOINT = "https://atnd.ak4.jp/api/cooperation";
+const ENDPOINT = 'https://atnd.ak4.jp/api/cooperation';
 const API = {
-  staffs: "staffs",
-  manhours: "manhours",
-  working_records: "working_records",
+  staffs: 'staffs',
+  manhours: 'manhours',
+  working_records: 'working_records',
 };
 
 /**
@@ -32,11 +32,11 @@ function getStaffInfo() {
         target: TOKEN,
       },
     })
-    .then((response) => {
+    .then(response => {
       console.dir(response.data.response, { depth: null });
     })
-    .catch((error) => {
-      console.error("Error:", error);
+    .catch(error => {
+      console.error('Error:', error);
     });
 }
 
@@ -45,7 +45,7 @@ function getStaffInfo() {
  */
 async function getKosu() {
   try {
-    const kosu = await axios.get(_getApiUrl(API.manhours) + "/" + STAFF_ID, {
+    const kosu = await axios.get(_getApiUrl(API.manhours) + '/' + STAFF_ID, {
       params: {
         token: TOKEN,
         // NOTE: 何故か日付を入力するとエラーになる
@@ -56,7 +56,7 @@ async function getKosu() {
     console.dir(kosu.data.response.manhours, { depth: null });
     return;
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
   }
 }
 
@@ -64,8 +64,8 @@ async function getKosu() {
  * 工数入力
  */
 async function insertKosu(targetMonth) {
-  const startDate = targetMonth.startOf("month").format("YYYYMMDD");
-  const endDate = targetMonth.endOf("month").format("YYYYMMDD");
+  const startDate = targetMonth.startOf('month').format('YYYYMMDD');
+  const endDate = targetMonth.endOf('month').format('YYYYMMDD');
 
   try {
     // 1. 勤務実績取得
@@ -86,7 +86,7 @@ async function insertKosu(targetMonth) {
     let manhours = [];
 
     // 勤務日ごとに処理
-    workingRecords.forEach((workingRecord) => {
+    workingRecords.forEach(workingRecord => {
       if (!workingRecord.actual_working_hours_no_rounding) {
         return;
       }
@@ -98,12 +98,10 @@ async function insertKosu(targetMonth) {
 
       // 休憩時間を引く
       if (workingRecord.break_time_results) {
-        workingRecord.break_time_results.forEach((breakTime) => {
+        workingRecord.break_time_results.forEach(breakTime => {
           const breakStart = dayjs(breakTime.rounded_break_time_start_time);
           const breakEnd = dayjs(breakTime.rounded_break_time_end_time);
-          workingMinutes =
-            workingMinutes -
-            dayjs.duration(breakEnd.diff(breakStart)).asMinutes();
+          workingMinutes = workingMinutes - dayjs.duration(breakEnd.diff(breakStart)).asMinutes();
         });
       }
 
@@ -115,7 +113,7 @@ async function insertKosu(targetMonth) {
 
       // 工数に追加
       manhours.push({
-        date: dayjs(workingRecord.date).format("YYYYMMDD"),
+        date: dayjs(workingRecord.date).format('YYYYMMDD'),
         projects: [
           {
             project_id: PROJECT_ID,
@@ -141,7 +139,7 @@ async function insertKosu(targetMonth) {
       ],
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
   }
 }
 
