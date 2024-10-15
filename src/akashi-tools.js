@@ -14,7 +14,7 @@ function main() {
 
   // 従業員情報取得
   program
-    .command('get-staff')
+    .command('get-staffinfo')
     .description('get staff information by token.')
     .action(() => {
       getStaffInfo();

@@ -1,6 +1,6 @@
 {
   "coc.preferences.formatOnSaveFiletypes": ["javascript", "json", "jsonc"],
-  "cSpell.ignoreWords": ["kosu"],
+  "cSpell.ignoreWords": ["kosu", "staffinfo"],
   "semanticTokens.enable": true,
   "eslint.enable": false,
   "tsserver.enable": false,

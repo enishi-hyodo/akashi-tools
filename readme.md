@@ -32,7 +32,7 @@ COMPANY_ID=
 API_TOKEN=
 
 # 従業員ID: 従業員番号とは違う。APIを叩いて取得するしかない。以下で取得できる。
-# > akashi-tools get-staff
+# > akashi-tools get-staffinfo
 STAFF_ID=
 
 # プロジェクトIDとタスクID:
@@ -50,7 +50,7 @@ DBに書き込みをしない読み込みのみの操作で試し実行をした
 ```sh
 # 自分の従業員情報を表示する
 # .envのCOMPANY_ID, API_TOKENだけ設定していれば動く
-akashi-tools get-staff
+akashi-tools get-staffinfo
 ```
 
 # 使い方
