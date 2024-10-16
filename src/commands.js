@@ -4,6 +4,7 @@ const axios = require('axios');
 const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
+const readline = require('readline/promises');
 
 // .env読み込み
 dotenv.config();
@@ -70,8 +71,13 @@ async function getKosu() {
 async function insertKosu(targetMonth) {
   const startDate = targetMonth.startOf('month').format('YYYYMMDD');
   const endDate = targetMonth.endOf('month').format('YYYYMMDD');
+  const confirmMessage = targetMonth.format('YYYY/MM') + 'の工数を入力しますか？';
 
-  console.log(targetMonth.format('YYYY/MM') + 'の工数を入力します。');
+  // 実行するかをconfirm
+  if (!(await _confirm(confirmMessage))) {
+    console.log('工数入力を中止しました。');
+    return;
+  }
 
   try {
     // 1. 勤務実績取得
@@ -148,6 +154,7 @@ async function insertKosu(targetMonth) {
       ],
     });
 
+    console.log('');
     console.log(targetMonth.format('YYYY/MM') + 'の工数入力が完了しました。');
     console.log('工数入力画面から確認してください。');
   } catch (error) {
@@ -162,6 +169,26 @@ function _getApiUrl(api) {
   return `${ENDPOINT}/${COMPANY_ID}/${api}`;
 }
 
+/**
+ * confirm用関数
+ */
+async function _confirm(message) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  try {
+    const answer = await rl.question(`${message} (y/n): `);
+    return answer.toLowerCase() === 'y';
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    rl.close();
+  }
+}
+
+// export
 module.exports = {
   getStaffInfo,
   getKosu,
