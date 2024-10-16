@@ -102,7 +102,7 @@ async function insertKosu(targetMonth) {
       const end = dayjs(workingRecord.rounded_end_time);
       let workingMinutes = dayjs.duration(end.diff(start)).asMinutes();
 
-      // 休憩時間を引く
+      // 休憩・外出時間を引く
       if (workingRecord.break_time_results) {
         workingRecord.break_time_results.forEach(breakTime => {
           const breakStart = dayjs(breakTime.rounded_break_time_start_time);
@@ -146,6 +146,7 @@ async function insertKosu(targetMonth) {
     });
 
     console.log(targetMonth.format('YYYY/MM') + 'の工数入力が完了しました。');
+    console.log('工数入力画面から確認してください。');
   } catch (error) {
     console.error('Error:', error);
   }
