@@ -23,7 +23,7 @@ const API = {
   working_records: 'working_records',
 };
 // 1時間休憩が発生する労働時のしきい値
-const ONE_HOUR_BREAKTIME_THRESHOLD = 6;
+const ONE_HOUR_BREAKTIME_THRESHOLD = 7;
 
 /**
  * トークンから従業員情報取得
@@ -111,9 +111,12 @@ async function insertKosu(targetMonth) {
         });
       }
 
-      // 1時間休憩を引く
-      if (workingMinutes >= 60 * ONE_HOUR_BREAKTIME_THRESHOLD) {
-        // 6時間以上なら休憩1時間を引く
+      // 1時間休憩
+      if (workingMinutes >= 60 * (ONE_HOUR_BREAKTIME_THRESHOLD - 1) && workingMinutes < 60 * ONE_HOUR_BREAKTIME_THRESHOLD) {
+        // 6時間以上7時間未満なら労働時間は6時間
+        workingMinutes = 60 * 6;
+      } else if (workingMinutes >= 60 * ONE_HOUR_BREAKTIME_THRESHOLD) {
+        // 7時間以上なら、1時間休憩を引く
         workingMinutes = workingMinutes - 60;
       }
 
