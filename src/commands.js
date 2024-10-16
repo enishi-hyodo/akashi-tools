@@ -14,12 +14,16 @@ const PROJECT_ID = Number(process.env.PROJECT_ID);
 const TASK_ID = Number(process.env.TASK_ID);
 
 // その他定数
+// APIエンドポイント
 const ENDPOINT = 'https://atnd.ak4.jp/api/cooperation';
+// APIのURL
 const API = {
   staffs: 'staffs',
   manhours: 'manhours',
   working_records: 'working_records',
 };
+// 1時間休憩が発生する労働時のしきい値
+const ONE_HOUR_BREAKTIME_THRESHOLD = 6;
 
 /**
  * トークンから従業員情報取得
@@ -108,8 +112,8 @@ async function insertKosu(targetMonth) {
       }
 
       // 1時間休憩を引く
-      if (workingMinutes >= 60 * 8) {
-        // 8時間以上なら休憩1時間を引く
+      if (workingMinutes >= 60 * ONE_HOUR_BREAKTIME_THRESHOLD) {
+        // 6時間以上なら休憩1時間を引く
         workingMinutes = workingMinutes - 60;
       }
 

@@ -1,5 +1,11 @@
 {
-  "coc.preferences.formatOnSaveFiletypes": ["javascript", "json", "jsonc"],
+  // prettier-ignore
+  "coc.preferences.formatOnSaveFiletypes": [
+    "breaktime",
+    "javascript",
+    "json",
+    "jsonc",
+  ],
   "cSpell.ignoreWords": ["kosu", "staffinfo"],
   "semanticTokens.enable": true,
   "eslint.enable": false,
