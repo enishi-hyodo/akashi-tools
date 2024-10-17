@@ -162,7 +162,7 @@ async function insertKosu(targetMonth) {
     });
 
     // 2. 工数入力
-    axios.post(_getApiUrl(API.manhours), {
+    await axios.post(_getApiUrl(API.manhours), {
       token: TOKEN,
       manhours: [
         {
