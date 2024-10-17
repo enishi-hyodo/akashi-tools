@@ -4,11 +4,24 @@ Akashi用のツール類。(今は工数入力のみ。)
 
 # 準備
 
+## 必要な環境
+
+- Node.jsが入っていること
+
 ## インストール
+
+- ソースをローカルに落とす  
+→`git clone`かソースのダウンロード
+
+```sh
+# git cloneの場合
+git clone https://github.com/enishi-hyodo/akashi-tools
+```
 
 - 必要なパッケージをインストール
 
 ```sh
+cd <インストールディレクトリ>
 npm install
 ```
 
@@ -17,8 +30,10 @@ npm install
 zshなら~/.zshrcに以下を追記。
 
 ```sh
-export PATH=$PATH:<インストールフォルダ>/bin
+export PATH=$PATH:<インストールディレクトリ>/bin
 ```
+
+※Windowsの場合も同様にPATHを通せばOK。
 
 ## .envを作成
 
