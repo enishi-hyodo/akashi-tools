@@ -30,6 +30,11 @@ const ONE_HOUR_BREAKTIME_THRESHOLD = 7;
  * トークンから従業員情報取得
  */
 function getStaffInfo() {
+  // .envのcheck
+  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN'])) {
+    return;
+  }
+
   axios
     .get(_getApiUrl(API.staffs), {
       params: {
@@ -49,6 +54,11 @@ function getStaffInfo() {
  * 工数取得
  */
 async function getKosu() {
+  // .envのcheck
+  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID'])) {
+    return;
+  }
+
   try {
     const kosu = await axios.get(_getApiUrl(API.manhours) + '/' + STAFF_ID, {
       params: {
@@ -69,6 +79,11 @@ async function getKosu() {
  * 工数入力
  */
 async function insertKosu(targetMonth) {
+  // .envのcheck
+  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID'])) {
+    return;
+  }
+
   const startDate = targetMonth.startOf('month').format('YYYYMMDD');
   const endDate = targetMonth.endOf('month').format('YYYYMMDD');
   const confirmMessage = targetMonth.format('YYYY/MM') + 'の工数を入力しますか？';
@@ -186,6 +201,23 @@ async function _confirm(message) {
   } finally {
     rl.close();
   }
+}
+
+/**
+ * 指定した環境変数が設定されているかを確認する
+ */
+function _validateDotEnv(envs) {
+  let valid = true;
+
+  envs.forEach(env => {
+    if (!process.env[env]) {
+      console.error(`.envに${env}が設定されていません。`);
+      valid = false;
+      return;
+    }
+  });
+
+  return valid;
 }
 
 // export
