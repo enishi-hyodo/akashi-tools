@@ -81,8 +81,9 @@ async function getKosu(targetMonth) {
 
 /**
  * 工数入力
+ * TODO: notOverwrite=trueなら、入力済の工数を消さずに追加するようにする
  */
-async function insertKosu(targetMonth) {
+async function insertKosu(targetMonth, notOverwrite = false) {
   // .envのcheck
   if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID'])) {
     return;
@@ -90,11 +91,27 @@ async function insertKosu(targetMonth) {
 
   const startDate = targetMonth.startOf('month').format('YYYYMMDD');
   const endDate = targetMonth.endOf('month').format('YYYYMMDD');
-  const confirmMessage = targetMonth.format('YYYY/MM') + 'の工数を入力しますか？';
 
+  let confirmMessage = targetMonth.format('YYYY年MM月') + 'について、';
+  confirmMessage += `PROJECT_ID=${PROJECT_ID}, TASK_ID=${TASK_ID}で工数を入力します。\n`;
+  // TODO: ↑プロジェクト名、タスク名で表示したい。が、プロジェクト情報APIは権限がないと実行できないっぽいので無理かも...
+  if (!notOverwrite) {
+    // --not-overwriteを指定していない場合(デフォルト挙動)
+    confirmMessage += `入力済の工数は上書きされます。\n`;
+  } else {
+    // --not-overwriteを指定した場合
+    confirmMessage += '入力済の工数を消さずに、上記タスクの工数を追加します。';
+  }
+  confirmMessage += '工数入力を実行しますか？';
   // 実行するかをconfirm
   if (!(await _confirm(confirmMessage))) {
-    console.log('工数入力を中止しました。');
+    console.log('\n工数入力を中止しました。');
+    return;
+  }
+
+  // TODO: 一旦
+  if (notOverwrite) {
+    console.log('\nTODO: --not-overwriteオプションは未実装');
     return;
   }
 
@@ -173,8 +190,7 @@ async function insertKosu(targetMonth) {
       ],
     });
 
-    console.log('');
-    console.log(targetMonth.format('YYYY/MM') + 'の工数入力が完了しました。');
+    console.log(`\n${targetMonth.format('YYYY年MM月')}の工数入力が完了しました。`);
     console.log('工数入力画面から確認してください。');
   } catch (error) {
     console.error('Error:', error);
