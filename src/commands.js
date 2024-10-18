@@ -25,7 +25,6 @@ const API = {
 };
 // 1時間休憩が発生する労働時のしきい値
 const ONE_HOUR_BREAKTIME_THRESHOLD = 7;
-
 ///////////////////////////////////////////////////////////////////////////////
 // exportする関数
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,7 +62,7 @@ async function getKosu() {
   }
 
   try {
-    const kosu = await axios.get(_getApiUrl(API.manhours) + '/' + STAFF_ID, {
+    const kosu = await axios.get(`${_getApiUrl(API.manhours)}/${STAFF_ID}`, {
       params: {
         token: TOKEN,
         // NOTE: 何故か日付を入力するとエラーになる
@@ -210,6 +209,9 @@ async function _confirm(message) {
 
 /**
  * 指定した環境変数が設定されているかを確認する
+ *
+ * @param {string[]} envs チェック対象の環境変数名の配列
+ * @return {boolean} 環境変数が設定されているか
  */
 function _validateDotEnv(envs) {
   let valid = true;

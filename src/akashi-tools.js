@@ -4,10 +4,7 @@ const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 const { getStaffInfo, getKosu, insertKosu } = require('./commands');
-
-/**
- * メイン処理
- */
+///////////////////////////////////////////////////////////////////////////////
 function main() {
   // バージョン情報
   program.version('1.0.0', '-v, --version');
