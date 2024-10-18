@@ -55,19 +55,21 @@ function getStaffInfo() {
 /**
  * 工数取得
  */
-async function getKosu() {
+async function getKosu(targetMonth) {
   // .envのcheck
   if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID'])) {
     return;
   }
 
+  const startDate = targetMonth.startOf('month').format('YYYYMMDDHHmmss');
+  const endDate = targetMonth.endOf('month').format('YYYYMMDDHHmmss');
+
   try {
     const kosu = await axios.get(`${_getApiUrl(API.manhours)}/${STAFF_ID}`, {
       params: {
         token: TOKEN,
-        // NOTE: 何故か日付を入力するとエラーになる
-        // start_date: "20240901",
-        // end_date: "20241007",
+        start_date: startDate,
+        end_date: endDate,
       },
     });
     console.dir(kosu.data.response.manhours, { depth: null });

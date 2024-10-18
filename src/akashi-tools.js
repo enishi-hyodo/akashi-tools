@@ -19,10 +19,11 @@ function main() {
 
   // 工数取得
   program
-    .command('get-kosu')
+    .command('get-kosu [targetMonth]')
     .description('get kosu of the month.')
-    .action(() => {
-      getKosu();
+    .action(targetMonth => {
+      targetMonth = targetMonth ? dayjs(targetMonth) : dayjs();
+      getKosu(targetMonth);
     });
 
   // 工数入力
