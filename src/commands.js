@@ -56,24 +56,9 @@ function getStaffInfo() {
  * 工数取得
  */
 async function getKosu(targetMonth) {
-  // .envのcheck
-  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID'])) {
-    return;
-  }
-
-  const startDate = targetMonth.startOf('month').format('YYYYMMDDHHmmss');
-  const endDate = targetMonth.endOf('month').format('YYYYMMDDHHmmss');
-
   try {
-    const kosu = await axios.get(`${_getApiUrl(API.manhours)}/${STAFF_ID}`, {
-      params: {
-        token: TOKEN,
-        start_date: startDate,
-        end_date: endDate,
-      },
-    });
-    console.dir(kosu.data.response.manhours, { depth: null });
-    return;
+    const manhours = await _getManhours(targetMonth);
+    console.dir(manhours, { depth: null });
   } catch (error) {
     console.error('Error:', error);
   }
@@ -84,40 +69,34 @@ async function getKosu(targetMonth) {
  * TODO: notOverwrite=trueなら、入力済の工数を消さずに追加するようにする
  */
 async function insertKosu(targetMonth, notOverwrite = false) {
-  // .envのcheck
-  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID'])) {
-    return;
-  }
-
-  const startDate = targetMonth.startOf('month').format('YYYYMMDD');
-  const endDate = targetMonth.endOf('month').format('YYYYMMDD');
-
-  let confirmMessage = targetMonth.format('YYYY年MM月') + 'について、';
-  confirmMessage += `PROJECT_ID=${PROJECT_ID}, TASK_ID=${TASK_ID}で工数を入力します。\n`;
-  // TODO: ↑プロジェクト名、タスク名で表示したい。が、プロジェクト情報APIは権限がないと実行できないっぽいので無理かも...
-  if (!notOverwrite) {
-    // --not-overwriteを指定していない場合(デフォルト挙動)
-    confirmMessage += `入力済の工数は上書きされます。\n`;
-  } else {
-    // --not-overwriteを指定した場合
-    confirmMessage += '入力済の工数を消さずに、上記タスクの工数を追加します。';
-  }
-  confirmMessage += '工数入力を実行しますか？';
-  // 実行するかをconfirm
-  if (!(await _confirm(confirmMessage))) {
-    console.log('\n工数入力を中止しました。');
-    return;
-  }
-
-  // TODO: 一旦
-  if (notOverwrite) {
-    console.log('\nTODO: --not-overwriteオプションは未実装');
-    return;
-  }
-
   try {
-    // 1. 勤務実績取得
-    const response = await axios.get(_getApiUrl(API.working_records), {
+    // .envのcheck
+    if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID'])) {
+      return;
+    }
+
+    const startDate = targetMonth.startOf('month').format('YYYYMMDD');
+    const endDate = targetMonth.endOf('month').format('YYYYMMDD');
+
+    let confirmMessage = targetMonth.format('YYYY年MM月') + 'について、';
+    confirmMessage += `PROJECT_ID=${PROJECT_ID}, TASK_ID=${TASK_ID}で工数を入力します。\n`;
+    // TODO: ↑プロジェクト名、タスク名で表示したい。が、プロジェクト情報APIは権限がないと実行できないっぽいので無理かも...
+    if (!notOverwrite) {
+      // --not-overwriteを指定していない場合(デフォルト挙動)
+      confirmMessage += `入力済の工数は上書きされます。\n`;
+    } else {
+      // --not-overwriteを指定した場合
+      confirmMessage += '入力済の工数を消さずに、上記タスクの工数を追加します。';
+    }
+    confirmMessage += '工数入力を実行しますか？';
+    // 実行するかをconfirm
+    if (!(await _confirm(confirmMessage))) {
+      console.log('\n工数入力を中止しました。');
+      return;
+    }
+
+    // 勤務実績取得
+    const workingRecordsResponse = await axios.get(_getApiUrl(API.working_records), {
       params: {
         token: TOKEN,
         start_date: startDate,
@@ -127,9 +106,16 @@ async function insertKosu(targetMonth, notOverwrite = false) {
         include_break_results: 1,
       },
     });
-
     // 勤怠情報
-    const workingRecords = response.data.response[0].working_records;
+    const workingRecords = workingRecordsResponse.data.response[0].working_records;
+
+    // 入力済の工数を取得
+    if (notOverwrite) {
+      console.log('TODO: --not-overwriteは未実装');
+      return;
+      const currentManhours = await _getManhours(targetMonth);
+    }
+
     // 工数の配列
     let manhours = [];
 
@@ -143,6 +129,8 @@ async function insertKosu(targetMonth, notOverwrite = false) {
       const start = dayjs(workingRecord.rounded_start_time);
       const end = dayjs(workingRecord.rounded_end_time);
       let workingMinutes = dayjs.duration(end.diff(start)).asMinutes();
+
+      // TODO: 他プロジェクト、他タスクの分の時間を引く
 
       // 休憩・外出時間を引く
       if (workingRecord.break_time_results) {
@@ -173,13 +161,15 @@ async function insertKosu(targetMonth, notOverwrite = false) {
                 task_id: TASK_ID,
                 minute: workingMinutes,
               },
+              // ...他タスクの配列 // ←TODO
             ],
           },
+          // ...他プロジェクトの配列 // ←TODO
         ],
       });
     });
 
-    // 2. 工数入力
+    // 工数入力
     await axios.post(_getApiUrl(API.manhours), {
       token: TOKEN,
       manhours: [
@@ -243,6 +233,25 @@ function _validateDotEnv(envs) {
   });
 
   return valid;
+}
+
+async function _getManhours(targetMonth) {
+  // .envのcheck
+  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID'])) {
+    return false;
+  }
+
+  const startDate = targetMonth.startOf('month').format('YYYYMMDDHHmmss');
+  const endDate = targetMonth.endOf('month').format('YYYYMMDDHHmmss');
+
+  const manhours = await axios.get(`${_getApiUrl(API.manhours)}/${STAFF_ID}`, {
+    params: {
+      token: TOKEN,
+      start_date: startDate,
+      end_date: endDate,
+    },
+  });
+  return manhours.data.response.manhours[0].dates;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // export
