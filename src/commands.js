@@ -33,9 +33,7 @@ const ONE_HOUR_BREAKTIME_THRESHOLD = 7;
  */
 function getStaffInfo() {
   // .envのcheck
-  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN'])) {
-    return;
-  }
+  _validateDotEnv(['COMPANY_ID', 'API_TOKEN']);
 
   axios
     .get(_getApiUrl(API.staffs), {
@@ -71,9 +69,7 @@ async function getKosu(targetMonth) {
 async function insertKosu(targetMonth, notOverwrite = false) {
   try {
     // .envのcheck
-    if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID'])) {
-      return;
-    }
+    _validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID']);
 
     const startDate = targetMonth.startOf('month').format('YYYYMMDD');
     const endDate = targetMonth.endOf('month').format('YYYYMMDD');
@@ -219,27 +215,24 @@ async function _confirm(message) {
  * 指定した環境変数が設定されているかを確認する
  *
  * @param {string[]} envs チェック対象の環境変数名の配列
- * @return {boolean} 環境変数が設定されているか
  */
 function _validateDotEnv(envs) {
-  let valid = true;
+  let emptyEnvs = [];
 
   envs.forEach(env => {
     if (!process.env[env]) {
-      console.error(`.envに${env}が設定されていません。`);
-      valid = false;
-      return;
+      emptyEnvs.push(env);
     }
   });
 
-  return valid;
+  if (emptyEnvs.length > 0) {
+    throw new Error(`\x1b[31m.envに${emptyEnvs.join(', ')}が設定されていません。\x1b[0m`);
+  }
 }
 
 async function _getManhours(targetMonth) {
   // .envのcheck
-  if (!_validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID'])) {
-    return false;
-  }
+  _validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID']);
 
   const startDate = targetMonth.startOf('month').format('YYYYMMDDHHmmss');
   const endDate = targetMonth.endOf('month').format('YYYYMMDDHHmmss');
