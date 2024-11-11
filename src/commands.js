@@ -64,7 +64,6 @@ async function getKosu(targetMonth) {
 
 /**
  * 工数入力
- * TODO: notOverwrite=trueなら、入力済の工数を消さずに追加するようにする
  */
 async function insertKosu(targetMonth, notOverwrite = false) {
   try {
@@ -106,10 +105,9 @@ async function insertKosu(targetMonth, notOverwrite = false) {
     const workingRecords = workingRecordsResponse.data.response[0].working_records;
 
     // 入力済の工数を取得
+    let currentManhours = null;
     if (notOverwrite) {
-      console.log('TODO: --not-overwriteは未実装');
-      return;
-      const currentManhours = await _getManhours(targetMonth);
+      currentManhours = await _getManhours(targetMonth);
     }
 
     // 工数の配列
@@ -118,15 +116,15 @@ async function insertKosu(targetMonth, notOverwrite = false) {
     // 勤務日ごとに処理
     workingRecords.forEach(workingRecord => {
       if (!workingRecord.actual_working_hours_no_rounding) {
+        // 実働時間がない場合何もしない
         return;
       }
-      // NOTE: 実働時間(actual_working_hours_no_rounding)を使用すると、外出ありとかの場合に1分ずれたりするので、
-      //       開始時刻、終了時刻、休憩時間から計算する
+
+      // NOTE: 実働時間(actual_working_hours_no_rounding)を使用すると、
+      //       外出ありとかの場合に1分ずれたりするので、開始時刻、終了時刻、休憩時間から計算する
       const start = dayjs(workingRecord.rounded_start_time);
       const end = dayjs(workingRecord.rounded_end_time);
       let workingMinutes = dayjs.duration(end.diff(start)).asMinutes();
-
-      // TODO: 他プロジェクト、他タスクの分の時間を引く
 
       // 休憩・外出時間を引く
       if (workingRecord.break_time_results) {
@@ -146,6 +144,52 @@ async function insertKosu(targetMonth, notOverwrite = false) {
         workingMinutes = workingMinutes - 60;
       }
 
+      let otherProjects = [];
+      let otherTasks = [];
+      let otherTaskComments = [];
+      if (notOverwrite) {
+        // prettier-ignore
+        const currentManhour = currentManhours
+          ? currentManhours.find(m => dayjs(m.date).isSame(dayjs(workingRecord.date)))
+          : null;
+
+        // 他プロジェクト
+        let otherProjects = currentManhour.projects.filter(p => p.project_id !== PROJECT_ID);
+        otherProjects = otherProjects.map(p => {
+          return {
+            project_id: p.project_id,
+            daily_hour_items: p.daily_hour_items.map(item => {
+              // 他プロジェクトの分の時間を引く
+              workingMinutes = workingMinutes - Number(item.minute);
+              return {
+                task_id: Number(item.task_id),
+                minute: Number(item.minute),
+              };
+            }),
+            daily_comment_items: p.daily_comment_items,
+          };
+        });
+
+        // 同プロジェクトの他タスク // TODO: 動作未確認
+        const project = currentManhour?.projects?.find(p => p.project_id === PROJECT_ID);
+        // prettier-ignore
+        let otherTasks = project != null && project !== undefined
+          ? project.daily_hour_items.filter(t => t.task_id !== TASK_ID)
+          : [];
+        otherTasks = otherTasks.map(t => {
+          // 他タスクの分の時間を引く
+          workingMinutes = workingMinutes - Number(t.minute);
+          return {
+            task_id: Number(t.task_id),
+            minute: Number(t.minute),
+          };
+        });
+        // prettier-ignore
+        otherTaskComments = project != null && project !== undefined
+          ? project.daily_comment_items
+          : [];
+      }
+
       // 工数に追加
       manhours.push({
         date: dayjs(workingRecord.date).format('YYYYMMDD'),
@@ -157,10 +201,13 @@ async function insertKosu(targetMonth, notOverwrite = false) {
                 task_id: TASK_ID,
                 minute: workingMinutes,
               },
-              // ...他タスクの配列 // ←TODO
+              // 他タスク
+              ...otherTasks,
             ],
+            daily_comment_items: otherTaskComments,
           },
-          // ...他プロジェクトの配列 // ←TODO
+          // 他プロジェクト
+          ...otherProjects,
         ],
       });
     });
