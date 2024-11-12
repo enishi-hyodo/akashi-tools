@@ -154,40 +154,43 @@ async function insertKosu(targetMonth, notOverwrite = false) {
           : null;
 
         // 他プロジェクト
-        let otherProjects = currentManhour.projects.filter(p => p.project_id !== PROJECT_ID);
-        otherProjects = otherProjects.map(p => {
-          return {
-            project_id: p.project_id,
-            daily_hour_items: p.daily_hour_items.map(item => {
-              // 他プロジェクトの分の時間を引く
-              workingMinutes = workingMinutes - Number(item.minute);
-              return {
-                task_id: Number(item.task_id),
-                minute: Number(item.minute),
-              };
-            }),
-            daily_comment_items: p.daily_comment_items,
-          };
-        });
+        if (currentManhour) {
+          otherProjects = currentManhour.projects.filter(p => p.project_id !== PROJECT_ID);
+          otherProjects = otherProjects.map(p => {
+            return {
+              project_id: p.project_id,
+              daily_hour_items: p.daily_hour_items.map(item => {
+                // 他プロジェクトの分の時間を引く
+                workingMinutes = workingMinutes - Number(item.minute);
+                return {
+                  task_id: Number(item.task_id),
+                  minute: Number(item.minute),
+                };
+              }),
+              daily_comment_items: p.daily_comment_items, // TODO: 要動作確認
+            };
+          });
+        }
 
-        // 同プロジェクトの他タスク // TODO: 動作未確認
+        // 同プロジェクトの他タスク
         const project = currentManhour?.projects?.find(p => p.project_id === PROJECT_ID);
-        // prettier-ignore
-        let otherTasks = project != null && project !== undefined
-          ? project.daily_hour_items.filter(t => t.task_id !== TASK_ID)
-          : [];
-        otherTasks = otherTasks.map(t => {
-          // 他タスクの分の時間を引く
-          workingMinutes = workingMinutes - Number(t.minute);
-          return {
-            task_id: Number(t.task_id),
-            minute: Number(t.minute),
-          };
-        });
-        // prettier-ignore
-        otherTaskComments = project != null && project !== undefined
-          ? project.daily_comment_items
-          : [];
+        if (project) {
+          otherTasks = project.daily_hour_items.filter(t => Number(t.task_id) !== TASK_ID);
+          otherTasks = otherTasks.map(t => {
+            // 他タスクの分の時間を引く
+            workingMinutes = workingMinutes - Number(t.minute);
+            return {
+              task_id: Number(t.task_id),
+              minute: Number(t.minute),
+            };
+          });
+          otherTaskComments = project.daily_comment_items.map(c => {
+            return {
+              task_id: Number(c.task_id),
+              comment: c.comment, // TODO: 要動作確認
+            };
+          });
+        }
       }
 
       // 工数に追加
