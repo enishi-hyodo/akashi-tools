@@ -64,6 +64,9 @@ async function getKosu(targetMonth) {
 
 /**
  * 工数入力
+ * TODO: 他プロジェクトのタスクが入力されている状態でオプションなしで実行すると、上書きされるがグラフに時間が残ってしまう。
+ *       工数取得APIでは取れてないけどどこかにデータが残ってるっぽい...
+ *       他プロジェクトのタスクが入力されてたら手動で0を入れるようにするか...
  */
 async function insertKosu(targetMonth, notOverwrite = false) {
   try {
