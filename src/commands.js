@@ -162,7 +162,12 @@ async function insertKosu(targetMonth) {
                 minute: Number(item.minute),
               };
             }),
-            daily_comment_items: p.daily_comment_items, // TODO: 要動作確認
+            daily_comment_items: p.daily_comment_items.map(item => {
+              return {
+                task_id: Number(item.task_id),
+                comment: item.comment, // TODO: 何故か登録できない
+              };
+            }),
           };
         });
       }
