@@ -64,9 +64,13 @@ async function getKosu(targetMonth) {
 
 /**
  * 工数入力
- * TODO: notOverwrite=trueなら、入力済の工数を消さずに追加するようにする
+ * NOTE: 他タスクの工数が入力されていても削除されず、残りの未入力時間を.envで指定したタスクで埋める。
+ *       最初は他タスクを削除して指定タスクで上書きする/しないをオプションで分けていたが、
+ *       上書きするとデータがおかしくなるみたいなのでやめた。
+ *       (上書きすると、他タスクは各日からは消えるが、グラフ上には残ってしまう。
+ *       多分、各日ごとの工数と各タスクごとの工数は別々のデータとして保持しているのだと思う。)
  */
-async function insertKosu(targetMonth, notOverwrite = false) {
+async function insertKosu(targetMonth) {
   try {
     // .envのcheck
     _validateDotEnv(['COMPANY_ID', 'API_TOKEN', 'STAFF_ID', 'PROJECT_ID', 'TASK_ID']);
@@ -75,15 +79,9 @@ async function insertKosu(targetMonth, notOverwrite = false) {
     const endDate = targetMonth.endOf('month').format('YYYYMMDD');
 
     let confirmMessage = targetMonth.format('YYYY年MM月') + 'について、';
+    // TODO: ↓プロジェクト名、タスク名で表示したい。が、プロジェクト情報APIは権限がないと実行できないっぽいので無理かも...
     confirmMessage += `PROJECT_ID=${PROJECT_ID}, TASK_ID=${TASK_ID}で工数を入力します。\n`;
-    // TODO: ↑プロジェクト名、タスク名で表示したい。が、プロジェクト情報APIは権限がないと実行できないっぽいので無理かも...
-    if (!notOverwrite) {
-      // --not-overwriteを指定していない場合(デフォルト挙動)
-      confirmMessage += `入力済の工数は上書きされます。\n`;
-    } else {
-      // --not-overwriteを指定した場合
-      confirmMessage += '入力済の工数を消さずに、上記タスクの工数を追加します。';
-    }
+    confirmMessage += '入力済の工数を消さずに、上記タスクの工数を追加します。\n';
     confirmMessage += '工数入力を実行しますか？';
     // 実行するかをconfirm
     if (!(await _confirm(confirmMessage))) {
@@ -106,11 +104,7 @@ async function insertKosu(targetMonth, notOverwrite = false) {
     const workingRecords = workingRecordsResponse.data.response[0].working_records;
 
     // 入力済の工数を取得
-    if (notOverwrite) {
-      console.log('TODO: --not-overwriteは未実装');
-      return;
-      const currentManhours = await _getManhours(targetMonth);
-    }
+    const currentManhours = await _getManhours(targetMonth);
 
     // 工数の配列
     let manhours = [];
@@ -118,15 +112,15 @@ async function insertKosu(targetMonth, notOverwrite = false) {
     // 勤務日ごとに処理
     workingRecords.forEach(workingRecord => {
       if (!workingRecord.actual_working_hours_no_rounding) {
+        // 実働時間がない場合何もしない
         return;
       }
-      // NOTE: 実働時間(actual_working_hours_no_rounding)を使用すると、外出ありとかの場合に1分ずれたりするので、
-      //       開始時刻、終了時刻、休憩時間から計算する
+
+      // NOTE: 実働時間(actual_working_hours_no_rounding)を使用すると、
+      //       外出ありとかの場合に1分ずれたりするので、開始時刻、終了時刻、休憩時間から計算する
       const start = dayjs(workingRecord.rounded_start_time);
       const end = dayjs(workingRecord.rounded_end_time);
       let workingMinutes = dayjs.duration(end.diff(start)).asMinutes();
-
-      // TODO: 他プロジェクト、他タスクの分の時間を引く
 
       // 休憩・外出時間を引く
       if (workingRecord.break_time_results) {
@@ -146,6 +140,58 @@ async function insertKosu(targetMonth, notOverwrite = false) {
         workingMinutes = workingMinutes - 60;
       }
 
+      let otherProjects = [];
+      let otherTasks = [];
+      let otherTaskComments = [];
+      // prettier-ignore
+      const currentManhour = currentManhours
+          ? currentManhours.find(m => dayjs(m.date).isSame(dayjs(workingRecord.date)))
+          : null;
+
+      // 他プロジェクト
+      if (currentManhour) {
+        otherProjects = currentManhour.projects.filter(p => p.project_id !== PROJECT_ID);
+        otherProjects = otherProjects.map(p => {
+          return {
+            project_id: p.project_id,
+            daily_hour_items: p.daily_hour_items.map(item => {
+              // 他プロジェクトの分の時間を引く
+              workingMinutes = workingMinutes - Number(item.minute);
+              return {
+                task_id: Number(item.task_id),
+                minute: Number(item.minute),
+              };
+            }),
+            daily_comment_items: p.daily_comment_items.map(item => {
+              return {
+                task_id: Number(item.task_id),
+                comment: item.comment, // TODO: 何故か登録できない
+              };
+            }),
+          };
+        });
+      }
+
+      // 同プロジェクトの他タスク
+      const project = currentManhour?.projects?.find(p => p.project_id === PROJECT_ID);
+      if (project) {
+        otherTasks = project.daily_hour_items.filter(t => Number(t.task_id) !== TASK_ID);
+        otherTasks = otherTasks.map(t => {
+          // 他タスクの分の時間を引く
+          workingMinutes = workingMinutes - Number(t.minute);
+          return {
+            task_id: Number(t.task_id),
+            minute: Number(t.minute),
+          };
+        });
+        otherTaskComments = project.daily_comment_items.map(c => {
+          return {
+            task_id: Number(c.task_id),
+            comment: c.comment, // TODO: 要動作確認
+          };
+        });
+      }
+
       // 工数に追加
       manhours.push({
         date: dayjs(workingRecord.date).format('YYYYMMDD'),
@@ -157,10 +203,13 @@ async function insertKosu(targetMonth, notOverwrite = false) {
                 task_id: TASK_ID,
                 minute: workingMinutes,
               },
-              // ...他タスクの配列 // ←TODO
+              // 他タスク
+              ...otherTasks,
             ],
+            daily_comment_items: otherTaskComments,
           },
-          // ...他プロジェクトの配列 // ←TODO
+          // 他プロジェクト
+          ...otherProjects,
         ],
       });
     });

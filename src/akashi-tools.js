@@ -30,10 +30,9 @@ function main() {
   program
     .command('insert-kosu [targetMonth]')
     .description('insert kosu')
-    .option('--not-overwrite', 'do not overwrite existing kosu')
-    .action((targetMonth, options) => {
+    .action(targetMonth => {
       targetMonth = targetMonth ? dayjs(targetMonth) : dayjs();
-      insertKosu(targetMonth, options.notOverwrite);
+      insertKosu(targetMonth);
     });
 
   program.parse(process.argv);
