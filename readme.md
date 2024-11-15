@@ -97,9 +97,9 @@ akashi-tools get-staffinfo
 
 ```sh
 # 引数なしはその月がデフォルトで指定される
-akashi-tools get-staffinfo
+akashi-tools get-kosu
 # 2024/10を指定
-akashi-tools get-staffinfo 202410
+akashi-tools get-kosu 202410
 ```
 
 - 工数入力  
