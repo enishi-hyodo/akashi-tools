@@ -73,14 +73,14 @@ akashi-tools get-staffinfo
 Usage: akashi-tools [options] [command]
 
 Options:
-  -v, --version                        output the version number
-  -h, --help                           display help for command
+  -v, --version              output the version number
+  -h, --help                 display help for command
 
 Commands:
-  get-staffinfo                        get staff information by token.
-  get-kosu [targetMonth]               get kosu of the month.
-  insert-kosu [options] [targetMonth]  insert kosu
-  help [command]                       display help for command
+  get-staffinfo              get staff information by token.
+  get-kosu [targetMonth]     get kosu of the month.
+  insert-kosu [targetMonth]  insert kosu
+  help [command]             display help for command
 ```
 
 - 従業員情報取得  
@@ -103,25 +103,12 @@ akashi-tools get-staffinfo 202410
 ```
 
 - 工数入力  
-指定した月の工数を、.envで指定したタスクで入力する。
-  - オプションなし(デフォルト)  
-  入力済の工数が上書きされる。  
-  他タスクの工数が入力されていても削除され、.envで指定したタスクで工数が入力される。
+指定した月の工数を、.envで指定したタスクで入力する。  
+他タスクの工数が入力されていても削除されず、残りの未入力時間を.envで指定したタスクで埋める。  
 
-  ```sh
-  # 引数なしはその月がデフォルトで指定される
-  akashi-tools insert-kosu
-  # 2024/10を指定
-  akashi-tools insert-kosu 202410
-  ```
-  - `--not-overwrite`オプションを指定  
-  入力済の工数が上書きさない。  
-  他タスクの工数が入力されていても削除されず、残りの未入力時間を.envで指定したタスクで埋める。  
-  基本単一タスクだが、一部だけ別作業を行った場合など用。
-
-  ```sh
-  # 引数なしはその月がデフォルトで指定される
-  akashi-tools insert-kosu --not-overwrite
-  # 2024/10を指定
-  akashi-tools insert-kosu --not-overwrite 202410
-  ```
+```sh
+# 引数なしはその月がデフォルトで指定される
+akashi-tools insert-kosu
+# 2024/10を指定
+akashi-tools insert-kosu 202410
+```
