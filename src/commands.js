@@ -237,8 +237,8 @@ async function insertKosu(targetMonth) {
 /**
  * APIのURLを取得する
  */
-function _getApiUrl(api) {
-  return `${ENDPOINT}/${COMPANY_ID}/${api}`;
+function _getApiUrl(api, id = '') {
+  return id ? `${ENDPOINT}/${COMPANY_ID}/${api}/${id}` : `${ENDPOINT}/${COMPANY_ID}/${api}`;
 }
 
 /**
@@ -286,7 +286,7 @@ async function _getManhours(targetMonth) {
   const startDate = targetMonth.startOf('month').format('YYYYMMDDHHmmss');
   const endDate = targetMonth.endOf('month').format('YYYYMMDDHHmmss');
 
-  const manhours = await axios.get(`${_getApiUrl(API.manhours)}/${STAFF_ID}`, {
+  const manhours = await axios.get(_getApiUrl(API.manhours, STAFF_ID), {
     params: {
       token: TOKEN,
       start_date: startDate,
