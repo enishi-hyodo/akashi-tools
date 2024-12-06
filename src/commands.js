@@ -109,6 +109,9 @@ async function insertKosu(targetMonth) {
     // 工数の配列
     let manhours = [];
 
+    // 工数削除処理を入れる配列。Promise.all()でまとめて実行。
+    let deleteApis = [];
+
     // 勤務日ごとに処理
     workingRecords.forEach(workingRecord => {
       if (!workingRecord.actual_working_hours_no_rounding) {
@@ -212,7 +215,31 @@ async function insertKosu(targetMonth) {
           ...otherProjects,
         ],
       });
+
+      // 他プロジェクトの工数削除
+      // NOTE: 何故か一回削除してから入れ直さないとちゃんと入らない
+      if (otherProjects.length > 0) {
+        otherProjects.forEach(p => {
+          p.daily_hour_items.forEach(item => {
+            deleteApis.push(
+              (async () => {
+                await axios.delete(_getApiUrl(API.manhours, STAFF_ID), {
+                  data: {
+                    token: TOKEN,
+                    date: dayjs(workingRecord.date).format('YYYYMMDD'),
+                    project_id: p.project_id,
+                    task_id: item.task_id,
+                  },
+                });
+              })()
+            );
+          });
+        });
+      }
     });
+
+    // 他プロジェクトの工数削除を実行
+    await Promise.all(deleteApis);
 
     // 工数入力
     await axios.post(_getApiUrl(API.manhours), {
