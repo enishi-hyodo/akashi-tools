@@ -112,3 +112,9 @@ akashi-tools insert-kosu
 # 2024/10を指定
 akashi-tools insert-kosu 202410
 ```
+
+# TODO
+
+- [ ] `-f`オプションを追加  
+→yes/no聞かれずに実行するように
+→cronとかで叩くために要るかな
