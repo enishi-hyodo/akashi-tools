@@ -320,7 +320,7 @@ async function _getManhours(targetMonth) {
       end_date: endDate,
     },
   });
-  return manhours.data.response.manhours[0].dates;
+  return manhours.data.response.manhours.length ? manhours.data.response.manhours[0].dates : null;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // export
